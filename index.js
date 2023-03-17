@@ -6,10 +6,8 @@ const { writeFile, readFile } = require('./utils/export-file');
 const { DOMAIN } = process.env;
 
 const getData = async () => {
-  console.log("Get data from dynamo!");
   try {
     const data = await getRecordsByDomain(constants.EVENT_OFFICE, DOMAIN);
-    console.log('Data: ', Object.keys(data), data.Count);
     writeFile('data event-app', data.Items);
     return data;
   } catch (error) {
@@ -23,12 +21,11 @@ exports.handler = async () => {
   try {
     dataDynamo = readFile('data event-app');
   } catch (error) {
-    console.log(error);
     if (error.message.includes('Cannot find module')) {
       dataDynamo = await getData();
-    }
+    } else throw error;
   }
-  const dups = findDuplicates(dataDynamo);
+  const dups = findDuplicates(dataDynamo.Items);
   writeFile('duplicate events', dups);
 };
 

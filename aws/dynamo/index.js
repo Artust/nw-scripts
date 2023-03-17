@@ -12,7 +12,6 @@ const documentCLI = DynamoDBDocument.from(dynamoDB);
  * @param {} exclusiveStartKey primary key of the first item that this operation will evaluate
  */
 const getRecordsByDomain = async (tableName, domain, ExclusiveStartKey) => {
-  console.log("ExclusiveStartKey: ", ExclusiveStartKey);
   const params = {
     TableName: tableName,
     KeyConditionExpression: '#domain = :domain',
@@ -30,10 +29,10 @@ const getRecordsByDomain = async (tableName, domain, ExclusiveStartKey) => {
     .query(params)
     .then(async (rs) => {
       if (rs.LastEvaluatedKey) {
+        console.log('Count: ', rs.Count);
         const next = await getRecordsByDomain(tableName, domain, rs.LastEvaluatedKey);
         rs.Items = [...rs.Items, ...next.Items];
         rs.Count = rs.Count + next.Count;
-        console.log('Count: ', rs.Count);
         return rs;
       }
       console.log('Count: ', rs.Count);
