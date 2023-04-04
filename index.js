@@ -1,32 +1,23 @@
-const { getRecordsByDomain } = require('./aws/dynamo');
-const { findDuplicates } = require('./issue/find-duplicate-events');
-const { constants } = require('./utils/constants');
+const { getRecordsByDomain, getRecordWithKey } = require('./base/aws/dynamo');
+const { refreshToken } = require('./base/google');
+const { findDuplicates } = require('./usecases/find-duplicate-events');
+const GOOGLE_HANDLER = require('./handlers/google');
+const OFFICE_HANDLER = require('./usecases/office');
+
 const { writeFile, readFile } = require('./utils/export-file');
 
-const { DOMAIN } = process.env;
-
-const getData = async () => {
+exports.handler = async () => {
   try {
-    const data = await getRecordsByDomain(constants.EVENT_OFFICE, DOMAIN);
-    writeFile('data event-app', data.Items);
-    return data;
+    // const userInfo = await GOOGLE_USECASE.getUser('2');
+    const rs = await GOOGLE_HANDLER.getAllEventsOfUser('2');
+    // const rs = await refreshToken(userInfo)
+    writeFile('result', rs);
+    return rs;
   } catch (error) {
-    console.log(error);
+    console.log('––––––––––––––––––––––––––––––');
+    console.log('ERROR: ', error);
     return error;
   }
-};
-
-exports.handler = async () => {
-  let dataDynamo;
-  try {
-    dataDynamo = readFile('data event-app');
-  } catch (error) {
-    if (error.message.includes('Cannot find module')) {
-      dataDynamo = await getData();
-    } else throw error;
-  }
-  const dups = findDuplicates(dataDynamo.Items);
-  writeFile('duplicate events', dups);
 };
 
 this.handler();
