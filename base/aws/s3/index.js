@@ -1,4 +1,5 @@
 const { S3Client } = require('@aws-sdk/client-s3');
+
 const { ENV } = process.env;
 
 const s3 = new S3Client(ENV === 'prod' ? 'us-east-1' : 'ap-southeast-1');
@@ -17,11 +18,11 @@ exports.uploadJsonToS3 = (object, filename) => {
     ContentType: 'application/json',
   };
   return new Promise((resolve, reject) => {
-    s3.putObject(data, (err, data) => {
+    s3.putObject(data, (err, res) => {
       if (err) {
         reject(err);
       } else {
-        resolve(data);
+        resolve(res);
       }
     });
   });

@@ -1,8 +1,10 @@
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
 
+const { ERROR } = require('./errors');
+
 const { ENV, DOMAIN } = process.env;
-const dynamoDB = new DynamoDB({ region: ENV === 'prod' ? 'us-east-1' : 'ap-southeast-1' });
+const dynamoDB = new DynamoDB({ region: ENV === 'prod' ? 'us-east-1' : 'ap-southeast-1', maxAttempts: 10 });
 const documentCLI = DynamoDBDocument.from(dynamoDB);
 
 /**
@@ -26,6 +28,40 @@ const genParamsUpdate = (params) => {
     updateItemInput.ExpressionAttributeValues[`:${att}`] = params[att];
   });
   return updateItemInput;
+};
+
+/**
+ *
+ * @param {string} tableName name of table
+ * @param {} exclusiveStartKey primary key of the first item that this operation will evaluate
+ */
+const getAllRecordsInTable = async (tableName, ExclusiveStartKey) => {
+  const args = {
+    TableName: tableName,
+  };
+  if (ExclusiveStartKey) {
+    args.ExclusiveStartKey = ExclusiveStartKey;
+  }
+  console.log('ExclusiveStartKey: ', ExclusiveStartKey);
+  const timeStart = new Date();
+  console.log('time START: ', timeStart.toISOString());
+  await new Promise((res) => {
+    setTimeout(res.bind(null), 120);
+  });
+  const timeW8 = new Date();
+  console.log('time w8: ', timeW8.toISOString());
+  return documentCLI.scan(args).then(async (rs) => {
+    if (rs.LastEvaluatedKey) {
+      console.log('Count: ', rs.Count);
+      const next = await getAllRecordsInTable(tableName, rs.LastEvaluatedKey);
+      rs.Items = [...rs.Items, ...next.Items];
+      rs.Count += next.Count;
+      return rs;
+    }
+    console.log('Args: ', args);
+    console.log('Count: ', rs.Count);
+    return rs;
+  });
 };
 
 /**
@@ -87,6 +123,7 @@ const deleteRecord = (tableName, key) => {
 };
 
 module.exports = {
+  getAllRecordsInTable,
   getRecordsByDomain,
   getRecordWithKey,
   updateRecord,

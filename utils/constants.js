@@ -14,6 +14,11 @@ const constants = {
   MAIL_GOOGLE: `garoon-google-${ENV}-mail-history`,
 };
 
+const SIDE_ACTION = {
+  GOOGLE: 'google',
+  OFFICE: 'office',
+};
+
 const baseURL = {
   OFFICE_BASE_URL: `https://graph.microsoft.com/v1.0`,
   GOOGLE_BASE_URL: `https://www.googleapis.com`,
@@ -34,4 +39,5 @@ module.exports = {
   FieldSyncArr,
   tz,
   QUERY_DAY,
+  SIDE_ACTION,
 };

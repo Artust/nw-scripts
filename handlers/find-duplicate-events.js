@@ -3,7 +3,7 @@
  * @param {Array} events list event
  * @returns list event duplicate
  */
-const findDuplicates = (events) => {
+exports.findDuplicates = (events) => {
   const duplicateEvents = [];
   events.forEach((event, index) => {
     if (duplicateEvents.findIndex((ele) => ele.eventId === event.eventId) !== -1) {
@@ -22,5 +22,3 @@ const findDuplicates = (events) => {
   });
   return duplicateEvents;
 };
-
-exports.findDuplicates = findDuplicates;
